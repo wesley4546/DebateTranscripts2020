@@ -2,6 +2,7 @@ library(tidyverse)
 library(tidytext)
 library(ggplot2)
 library(wordcloud)
+library(tidyr)
 
 transripts <- read.csv("Democratic Debate 2020 transcripts/debate_transcripts_v3_2020-02-26.csv", stringsAsFactors = FALSE, encoding = "UTF-8")
 
@@ -40,7 +41,7 @@ bern_toke <- bern_trans %>%
   arrange(word)
 
 #manually removing numbers
-bern_toke <- bern_toke %>% slice(339:nrow(bern_toke)) #Removes the numbers
+bern_toke <- bern_toke %>% slice(379:nrow(bern_toke)) #Removes the numbers
 
 #Creating a word list with words being mentioned > 15 times
 bern_word <- bern_toke %>% 
@@ -53,64 +54,64 @@ bern_cloud <- wordcloud(
   freq = bern_word$n,
   color = brewer.pal(3,"Set2")
 )
-# 
-# 
-# 
-# #Creating the sentiment data
-# bern_sent <- bern_toke %>% 
-#   inner_join(get_sentiments("bing")) %>% 
-#   count(sentiment,debate_name) %>% 
-#   spread(sentiment, n) %>% 
-#   mutate(overall_seniment = positive - negative) %>% 
-#   mutate(debate_name2 = fct_reorder(debate_name, overall_seniment)) #had to reorder for cleanliness
-# 
-# #Creating Sentiment analysis graph
-# ggplot(bern_sent, aes(x=debate_name2, y = overall_seniment, fill = as.factor(debate_name2))) +
-#   geom_col(show.legend = FALSE) + 
-#   coord_flip() +
-#   labs(
-#     title = "Bernie Sander's Overall Sentiment during recent debates",
-#     y = "Overall Sentiment",
-#     x = "Debate Name"
-#   )
-# 
-# 
-# ## Topic Modeling
-# library(topicmodels)
-# 
-# #creating a df to work with
-# tidy_toke <- 
-#   bern_toke  %>% 
-#   count(word, debate_name) %>% 
-#   select(debate_name, everything()) #rearranging for clarity
-# 
-# #Creating a DTM 
-# dtm_bern <- 
-#   tidy_toke %>% 
-#   cast_dtm(debate_name, word, n)
-# set.seed(1) #We have to set a seed for control
-# 
-# # RunningLDA
-# lda_bern <- LDA(dtm_bern, k = 8, method = "Gibbs")
-# 
-# #Tidying up LDA for visualization
-# tidy_lda <- 
-#   lda_bern %>% 
-#   tidy(matrix = "beta") %>% 
-#   arrange(desc(beta))
-# 
-# #Creating a df for visualization (with factor leveling)
-# word_prob <-
-#   tidy_lda %>% 
-#   group_by(topic) %>%  #Automatically named topic due to model
-#   top_n(15, beta) %>% 
-#   ungroup() %>% 
-#   mutate(term2 = fct_reorder(term, beta)) #term is subsituded for word due to the model
-# 
-# #Plotting
-# ggplot(word_prob, aes(term2, beta, fill = as.factor(topic))) +
-#   geom_col(show.legend = FALSE) +
-#   facet_wrap(~topic, scales = "free") +
-#   coord_flip()
-# 
-# 
+
+
+
+#Creating the sentiment data
+bern_sent <- bern_toke %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(sentiment,debate_name) %>%
+  spread(sentiment, n) %>%
+  mutate(overall_seniment = positive - negative) %>%
+  mutate(debate_name2 = fct_reorder(debate_name, overall_seniment)) #had to reorder for cleanliness
+
+#Creating Sentiment analysis graph
+ggplot(bern_sent, aes(x=debate_name2, y = overall_seniment, fill = as.factor(debate_name2))) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  labs(
+    title = "Bernie Sander's Overall Sentiment during recent debates",
+    y = "Overall Sentiment",
+    x = "Debate Name"
+  )
+
+
+## Topic Modeling
+library(topicmodels)
+
+#creating a df to work with
+tidy_toke <-
+  bern_toke  %>%
+  count(word, debate_name) %>%
+  select(debate_name, everything()) #rearranging for clarity
+
+#Creating a DTM
+dtm_bern <-
+  tidy_toke %>%
+  cast_dtm(debate_name, word, n)
+set.seed(1) #We have to set a seed for control
+
+# RunningLDA
+lda_bern <- LDA(dtm_bern, k = 8, method = "Gibbs")
+
+#Tidying up LDA for visualization
+tidy_lda <-
+  lda_bern %>%
+  tidy(matrix = "beta") %>%
+  arrange(desc(beta))
+
+#Creating a df for visualization (with factor leveling)
+word_prob <-
+  tidy_lda %>%
+  group_by(topic) %>%  #Automatically named topic due to model
+  top_n(15, beta) %>%
+  ungroup() %>%
+  mutate(term2 = fct_reorder(term, beta)) #term is subsituded for word due to the model
+
+#Plotting
+ggplot(word_prob, aes(term2, beta, fill = as.factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~topic, scales = "free") +
+  coord_flip()
+
+
