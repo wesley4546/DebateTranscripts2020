@@ -76,7 +76,7 @@ ggplot(bern_sent, aes(x=debate_name2, y = overall_seniment, fill = as.factor(deb
   geom_col(show.legend = FALSE) +
   coord_flip() +
   labs(
-    title = "Bernie Sander's Overall Sentiment during recent debates",
+    title = "Bernie Sander's Overall Sentiment",
     y = "Overall Sentiment",
     x = "Debate Name"
   )
