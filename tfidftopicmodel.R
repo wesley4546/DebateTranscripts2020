@@ -60,7 +60,10 @@ bern_toke %>%
   facet_wrap(~debate_name, scales = "free") + #by debate
   coord_flip()
   
-
+bern_tf_idf <- 
+  bern_toke %>% 
+  count(debate_name,word, sort = TRUE) %>% 
+  bind_tf_idf(word,debate_name,n)
 
 
 #Topic Modeling
@@ -72,7 +75,8 @@ bern_dfm <- bern_toke %>%
   cast_dfm(debate_name,word,n)
 
 
-topic_model <- stm(bern_dfm, K = 10, init.type = "Spectral") #Creating model with 5 topics
+topic_model <- stm(bern_dfm,K = 10 , init.type = "Spectral") #Creating model with 5 topics
+
 summary(topic_model)
 
 

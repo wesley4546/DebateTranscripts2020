@@ -3,6 +3,7 @@ library(tidytext)
 library(ggplot2)
 library(wordcloud)
 library(tidyr)
+library(lubridate)
 
 transripts <- read.csv("Democratic Debate 2020 transcripts/debate_transcripts_v3_2020-02-26.csv", stringsAsFactors = FALSE, encoding = "UTF-8")
 
@@ -41,7 +42,12 @@ bern_toke <- bern_trans %>%
   arrange(word)
 
 #manually removing numbers
-bern_toke <- bern_toke %>% slice(379:nrow(bern_toke)) #Removes the numbers
+bern_toke <- bern_toke %>% slice(380:nrow(bern_toke)) #Removes the numbers
+
+#convert date(char) to date(date)
+bern_toke <-
+  bern_toke %>% 
+  mutate(date = mdy(date))
 
 #Creating a word list with words being mentioned > 15 times
 bern_word <- bern_toke %>% 
@@ -60,10 +66,10 @@ bern_cloud <- wordcloud(
 #Creating the sentiment data
 bern_sent <- bern_toke %>%
   inner_join(get_sentiments("bing")) %>%
-  count(sentiment,debate_name) %>%
+  count(sentiment,debate_name, date) %>%
   spread(sentiment, n) %>%
-  mutate(overall_seniment = positive - negative) %>%
-  mutate(debate_name2 = fct_reorder(debate_name, overall_seniment)) #had to reorder for cleanliness
+  mutate(overall_seniment = positive - negative)%>% 
+  mutate(debate_name2 = fct_reorder(debate_name, date))  #had to reorder by date
 
 #Creating Sentiment analysis graph
 ggplot(bern_sent, aes(x=debate_name2, y = overall_seniment, fill = as.factor(debate_name2))) +
