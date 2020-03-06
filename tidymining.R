@@ -14,6 +14,11 @@ bern_trans <-
   as_tibble() %>% 
   filter(speaker == c("Bernie Sanders"))
 
+#Getting number of speech parts in debates
+bern_debate_count <-
+  bern_trans %>% 
+  count(debate_name)
+
 #Grouping the transription by debate
 bern_trans %>% 
   group_by(debate_name)
@@ -29,6 +34,7 @@ my_stop_words <- tibble::tribble(
   "'",          "custom",
   "don",        "custom",
   "ve",         "custom",
+  "ll",         "custome"
 )
 
  #Adding my own stopwords to the list
@@ -43,6 +49,11 @@ bern_toke <- bern_trans %>%
 
 #manually removing numbers
 bern_toke <- bern_toke %>% slice(380:nrow(bern_toke)) #Removes the numbers
+
+#Getting the length of each debate
+bern_documentlength <- 
+  bern_toke %>% 
+  count(debate_name)
 
 #convert date(char) to date(date)
 bern_toke <-
@@ -60,7 +71,6 @@ bern_cloud <- wordcloud(
   freq = bern_word$n,
   color = brewer.pal(3,"Set2")
 )
-
 
 
 #Creating the sentiment data
@@ -110,7 +120,7 @@ tidy_lda <-
 word_prob <-
   tidy_lda %>%
   group_by(topic) %>%  #Automatically named topic due to model
-  top_n(15, beta) %>%
+  top_n(10, beta) %>%
   ungroup() %>%
   mutate(term2 = fct_reorder(term, beta)) #term is subsituded for word due to the model
 
