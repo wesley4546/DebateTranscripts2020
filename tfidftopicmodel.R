@@ -84,6 +84,23 @@ bern_dfm <- bern_toke %>%
   count(document,word,sort = TRUE) %>% 
   cast_dfm(document,word,n)
 
+#################################
+
+
+bernie_trans_sparse <- bern_toke %>%
+  count(document, word) %>%
+  cast_sparse(document, word, n)
+
+
+library(furrr)
+plan(multiprocess)
+
+many_models <- 
+  data_frame(K = c(seq(0,70, by = 5))) %>%
+  mutate(topic_model = future_map(K, ~stm(bernie_trans_sparse, K = .,
+                                          verbose = FALSE)))
+
+
 #runnign the topic model
 topic_model <- stm(bern_dfm,K = 5 , init.type = "Spectral") #Creating model with 5 topics
 summary(topic_model)
