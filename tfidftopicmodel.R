@@ -4,8 +4,8 @@ library(ggplot2)
 library(wordcloud)
 library(tidyr)
 
-transripts <- read.csv("Democratic Debate 2020 transcripts/debate_transcripts_v3_2020-02-26.csv", stringsAsFactors = FALSE, encoding = "UTF-8")
-
+transripts <- read.csv(here::here("Democratic Debate 2020 transcripts","debate_transcripts_v3_2020-02-26.csv"),
+                       stringsAsFactors = FALSE, encoding = "UTF-8")
 
 #Bernie's Transcripts
 bern_trans <- 
@@ -13,9 +13,15 @@ bern_trans <-
   as_tibble() %>% 
   filter(speaker == c("Bernie Sanders"))
 
+#Creating a document column
+bern_trans <- 
+  bern_trans %>% 
+  mutate(document = (1:nrow(bern_trans))) %>% 
+  as_tibble()
+
 #Grouping the transription by debate
 bern_trans %>% 
-  group_by(debate_name)
+  group_by(document)
 
 #Creating my own stopwords
 my_stop_words <- tibble::tribble(
@@ -28,6 +34,7 @@ my_stop_words <- tibble::tribble(
   "'",          "custom",
   "don",        "custom",
   "ve",         "custom",
+  "crosstalk",  "custom"
 )
 
 #Adding my own stopwords to the list
@@ -41,47 +48,50 @@ bern_toke <- bern_trans %>%
   arrange(word)
 
 #manually removing numbers
-bern_toke <- bern_toke %>% slice(380:nrow(bern_toke)) #Removes the numbers
+bern_toke <- bern_toke %>% slice(380:nrow(bern_toke)) #Removes the numbers (1:380)
 
 
-### Julia Silge's Video mapped to my data
+############################## Julia Silge's Video mapped to my data
 
 
-#this is exploring the td_idf
+#this is exploring the tf_idf
 bern_toke %>% 
-  count(debate_name,word, sort = TRUE) %>% 
-  bind_tf_idf(word,debate_name,n) %>% #creating the tf_idf statistic on tokens
-  group_by(debate_name) %>% 
+  count(document,word, sort = TRUE) %>% 
+  bind_tf_idf(word,document,n) %>% #creating the tf_idf statistic on tokens
+  group_by(document) %>% 
   top_n(10) %>% #selecting the top 10 words
   ungroup %>% 
-  mutate(word = reorder(word, tf_idf)) %>% #ordering it by their tf_idf rank
-  ggplot(aes(word, tf_idf, fill = debate_name)) + #plotting it
-  geom_col(show.legend = FALSE) +
-  facet_wrap(~debate_name, scales = "free") + #by debate
-  coord_flip()
+  mutate(word = reorder(word, tf_idf)) #ordering it by their tf_idf rank
+  
+  # I can't plot 430 documents
+  # ggplot(aes(word, tf_idf, fill = document)) + #plotting it
+  # geom_col(show.legend = FALSE) +
+  # facet_wrap(~document, scales = "free") + #by debate
+  # coord_flip()
   
 bern_tf_idf <- 
   bern_toke %>% 
-  count(debate_name,word, sort = TRUE) %>% 
-  bind_tf_idf(word,debate_name,n)
+  count(document,word, sort = TRUE) %>% 
+  bind_tf_idf(word,document,n)
 
 
 #Topic Modeling
 library(stm)
 library(quanteda)
 
+#Creating a dfm
 bern_dfm <- bern_toke %>% 
-  count(debate_name,word,sort = TRUE) %>% 
-  cast_dfm(debate_name,word,n)
+  count(document,word,sort = TRUE) %>% 
+  cast_dfm(document,word,n)
 
-
-topic_model <- stm(bern_dfm,K = 10 , init.type = "Spectral") #Creating model with 5 topics
-
+#runnign the topic model
+topic_model <- stm(bern_dfm,K = 5 , init.type = "Spectral") #Creating model with 5 topics
 summary(topic_model)
 
-
+#Making a tidy format for the beta measurment
 td_beta <- tidy(topic_model)
 
+# visualize the topics
 td_beta %>% 
   group_by(topic) %>% 
   top_n(10) %>% 
@@ -92,6 +102,7 @@ td_beta %>%
   facet_wrap(~topic, scales = "free") + #by topic
   coord_flip()
 
+#Measurement of the model using histograms
 td_gamma <- tidy(topic_model, matrix = "gamma",
                  document_names = rownames(bern_dfm))
 
