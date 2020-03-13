@@ -3,6 +3,9 @@ library(tidytext)
 library(ggplot2)
 library(wordcloud)
 library(tidyr)
+library(microbenchmark)
+
+
 
 transripts <- read.csv(here::here("Democratic Debate 2020 transcripts","debate_transcripts_v3_2020-02-26.csv"),
                        stringsAsFactors = FALSE, encoding = "UTF-8")
@@ -98,7 +101,7 @@ plan(multiprocess)
 
 #Make a tibble with models with k = 1 through 20 to test for amount of clustering
 many_models <- 
-  tibble(K = c(seq(0,20, by = 5))) %>%
+  tibble(K = c(seq(0,30, by = 1))) %>%
   mutate(topic_model = future_map(K, ~stm(bernie_trans_sparse, K = .,
                                           verbose = FALSE)))
 
@@ -132,7 +135,7 @@ k_result %>%
   labs(x = "K (number of topics)",
        y = NULL,
        title = "Model diagnostics by number of topics",
-       subtitle = "These diagnostics indicate that a good number of topics would be around 60")
+       subtitle = "These diagnostics indicate a good number of topics.")
 
 
 
@@ -146,7 +149,7 @@ k_result %>%
 
 
 #runnign the topic model
-topic_model <- stm(bern_dfm,K = 5 , init.type = "Spectral") #Creating model with 5 topics
+topic_model <- stm(bern_dfm,K = 10 , init.type = "Spectral") #Creating model with 5 topics
 
 
 #Making a tidy format for the beta measurment
@@ -163,7 +166,7 @@ td_beta %>%
   facet_wrap(~topic, scales = "free") + #by topic
   coord_flip() +
   labs(
-    title= "k = 5 topics for Bernie's Transcript data"
+    title= "k = 10 topics for Bernie's Transcript data"
   )
 
 #Measurement of the model using histograms
