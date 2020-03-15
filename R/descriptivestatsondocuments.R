@@ -3,6 +3,7 @@ library(tidytext)
 library(ggplot2)
 library(wordcloud)
 library(tidyr)
+library(patchwork)
 
 # Getting Transcripts -----------------------------------------------------
 
@@ -108,15 +109,18 @@ distribution_of_words <- ggplot(words_per_document, aes(x = n)) +
 distribution_of_words
 
 
+# Creates a boxplot with the documents and words
+boxplot_amt_words <- ggplot(words_per_document, aes(x = document, y = n)) +
+  geom_boxplot() +
+  geom_jitter(alpha = .5) +
+  labs(x = "Documents",
+       y = "# of Words",
+       title = "Boxplot of Amount of words per document")
+boxplot_amt_words
 
-  
 
-
-
-
-
-
-
+#Creates a plot with all three graphs
+tri_plot <- boxplot_amt_words + distribution_of_words + words_per_time_plot
 
 
 
