@@ -5,63 +5,21 @@ library(wordcloud)
 library(tidyr)
 library(lubridate)
 
-transripts <- read.csv("Democratic Debate 2020 transcripts/debate_transcripts_v3_2020-02-26.csv", stringsAsFactors = FALSE, encoding = "UTF-8")
-
-
-#Bernie's Transcripts
-bern_trans <- 
-  transripts %>% 
-  as_tibble() %>% 
-  filter(speaker == c("Bernie Sanders"))
-
-#Getting number of speech parts in debates
-bern_debate_count <-
-  bern_trans %>% 
-  count(debate_name)
-
-#Grouping the transription by debate
-bern_trans %>% 
-  group_by(debate_name)
-
-#Creating my own stopwords
-my_stop_words <- tibble::tribble(
-  ~word,        ~lexicon,
-  "america",    "custom",
-  "american",   "custom",
-  "people",     "custom",
-  "country",    "custom",
-  "bring",      "custom",
-  "'",          "custom",
-  "don",        "custom",
-  "ve",         "custom",
-  "ll",         "custome"
-)
-
- #Adding my own stopwords to the list
-stop_words2 <- stop_words %>% 
-  bind_rows(my_stop_words)
-
-#Unnested tokens data
-bern_toke <- bern_trans %>% 
-  unnest_tokens(word, speech, token = "words") %>% 
-  anti_join(stop_words2) %>%  #Stop words
-  arrange(word)
-
-#manually removing numbers
-bern_toke <- bern_toke %>% slice(380:nrow(bern_toke)) #Removes the numbers
+#Gets Bernie's Scripts
+source(here::here("R","berniescripts.R"))
 
 #Getting the length of each debate
 bern_documentlength <- 
-  bern_toke %>% 
+  bern_token%>% 
   count(debate_name)
 
 #convert date(char) to date(date)
-bern_toke <-
-  bern_toke %>% 
+bern_token<-
+  bern_token%>% 
   mutate(date = mdy(date))
 
 #Creating a word list with words being mentioned > 15 times
-bern_word <- bern_toke %>% 
+bern_word <- bern_token%>% 
   count(word) %>% 
   filter(n > 20) #set's it to only words that appear atleast 15
 
@@ -74,7 +32,7 @@ bern_cloud <- wordcloud(
 
 
 #Creating the sentiment data
-bern_sent <- bern_toke %>%
+bern_sent <- bern_token%>%
   inner_join(get_sentiments("bing")) %>%
   count(sentiment,debate_name, date) %>%
   spread(sentiment, n) %>%
@@ -97,7 +55,7 @@ library(topicmodels)
 
 #creating a df to work with
 tidy_toke <-
-  bern_toke  %>%
+  bern_token%>%
   count(word, debate_name) %>%
   select(debate_name, everything()) #rearranging for clarity
 
