@@ -57,10 +57,15 @@ plan(multiprocess)
 
 
 #Make a tibble with models with k = 1 through 20 to test for amount of clustering
-many_models <- 
-  tibble(K = c(seq(0,20, by = 2))) %>%
-  mutate(topic_model = future_map(K, ~stm(bernie_trans_sparse, K = .,
-                                          verbose = FALSE)))
+many_models <-
+  tibble(K = c(seq(0, 20, by = 2))) %>%
+  mutate(topic_model = future_map(
+    K, ~ stm(bernie_trans_sparse,
+             K = .,
+             init.type = "Spectral",
+             verbose = TRUE)
+    )
+  )
 
 
 #Makes a heldout
@@ -87,7 +92,7 @@ k_result
 
 
 #I also have NO idea what this is doing...yet
-k_result %>%
+clustergraph_data <- k_result %>%
   transmute(
     K,
     `Lower bound` = lbound,
@@ -95,7 +100,11 @@ k_result %>%
     `Semantic coherence` = map_dbl(semantic_coherence, mean),
     `Held-out likelihood` = map_dbl(eval_heldout, "expected.heldout")
   ) %>%
-  gather(Metric, Value,-K) %>%
+  gather(Metric, Value,-K)
+
+
+clustergraph <- 
+  clustergraph_data %>% 
   ggplot(aes(K, Value, color = Metric)) +
   geom_line(size = 1.5,
             alpha = 0.7,
@@ -107,13 +116,14 @@ k_result %>%
     title = "Model diagnostics by number of topics",
     subtitle = "These diagnostics indicate a good number of topics."
   )
+clustergraph
 
 
 
 # Julia's Video (Continued) -----------------------------------------------
 
 #running the topic model
-topic_model <- stm(bern_dfm,K = 10 , init.type = "Spectral") #Creating model with 5 topics
+topic_model <- stm(bern_dfm,K = 4, init.type = "Spectral", verbose = TRUE) #Creating model with 5 topics
 
 
 #Making a tidy format for the beta measurment
