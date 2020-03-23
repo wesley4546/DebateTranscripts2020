@@ -122,5 +122,3 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
   return(candidate_token)
   
 }
-
-
