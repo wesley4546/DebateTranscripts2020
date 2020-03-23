@@ -56,9 +56,9 @@ library(furrr)
 plan(multiprocess)
 
 
-#Make a tibble with models with k = 1 through 20 to test for amount of clustering
+#Make a tibble with models with k = 0 through 20 to test for amount of clustering
 many_models <-
-  tibble(K = c(seq(0, 20, by = 2))) %>%
+  tibble(K = c(seq(0, 70, by = 10))) %>%
   mutate(topic_model = future_map(
     K, ~ stm(bernie_trans_sparse,
              K = .,

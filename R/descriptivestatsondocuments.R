@@ -11,7 +11,8 @@ source(here::here("R","berniescripts.R"))
 
 # Descriptive Statistics --------------------------------------------------
 
-#Creates a df with count of words per document as well as speaking time
+# Creates a df with count of words per document as well as speaking time
+# Nonunique words with dropped stopwords
 words_per_document <-
   bern_token %>%
   count(document, speaking_time_seconds)
