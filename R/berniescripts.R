@@ -11,15 +11,17 @@ transripts <-
     encoding = "UTF-8"
   )
 
-
-
 # Getting Bernie's Transcripts --------------------------------------------
+
+
+candidate_name <- c("Bernie Sanders")
+
 
 #Bernie's Transcripts
 bern_transcript <- 
   transripts %>% 
   as_tibble() %>% 
-  filter(speaker == c("Bernie Sanders"))
+  filter(speaker == candidate_name)
 
 
 #Creating a document column
@@ -69,7 +71,9 @@ bern_token <- bern_transcript %>%
   anti_join(stop_words2) %>%  #Stop words
   arrange(word)
 
+#Removes numbers from word column
+bern_token <- bern_token %>% 
+  filter(!grepl("[[:digit:]]", word))
 
-#manually removing numbers
-bern_token <- bern_token %>% slice(380:nrow(bern_token)) #Removes the numbers (1:380)
+
 
