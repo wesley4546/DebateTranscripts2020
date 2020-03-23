@@ -60,6 +60,9 @@ stop_words2 <- stop_words %>%
   bind_rows(my_stop_words)
 
 
+# Tokenization ------------------------------------------------------------
+
+
 #Unnested tokens data
 bern_token <- bern_transcript %>% 
   unnest_tokens(word, speech, token = "words") %>% 

@@ -2,7 +2,8 @@ library(tidyverse)
 library(tidytext)
 library(ggplot2)
 library(tidyr)
-
+library(stm)
+library(furrr)
 
 
 #Gets Bernie's Scripts
@@ -11,56 +12,40 @@ source(here::here("R","berniescripts.R"))
 
 # Julia Silge's Video -----------------------------------------------------
 
-#this is exploring the tf_idf
-bern_token %>% 
-  count(document,word, sort = TRUE) %>% 
-  bind_tf_idf(word,document,n) %>% #creating the tf_idf statistic on tokens
-  group_by(document) %>% 
-  top_n(10) %>% #selecting the top 10 words
-  ungroup %>% 
-  mutate(word = reorder(word, tf_idf)) #ordering it by their tf_idf rank
-
-# I can't plot 430 documents
-# ggplot(aes(word, tf_idf, fill = document)) + #plotting it
-# geom_col(show.legend = FALSE) +
-# facet_wrap(~document, scales = "free") + #by debate
-# coord_flip()
-
+#Creating tf_idf
 bern_tf_idf <- 
   bern_token %>% 
   count(document,word, sort = TRUE) %>% 
-  bind_tf_idf(word,document,n)
+  tidytext::bind_tf_idf(word,document,n)
 
 
-#Topic Modeling
-library(stm)
 
 
 #Creating a dfm
 bern_dfm <- bern_token %>% 
   count(document,word,sort = TRUE) %>% 
-  cast_dfm(document,word,n)
+  tidytext::cast_dfm(document,word,n)
 
 
 
-# Julia Silge's Blog Post -------------------------------------------------
+# Topic Model Creation/Evaluation (Julia Silge's Blog Post)-----------------------------------------
+
 
 #Creates a cast_spares
 bernie_trans_sparse <- bern_token %>%
   count(document, word) %>%
-  cast_sparse(document, word, n)
+  tidytext::cast_sparse(document, word, n)
 
 
 #Parellel computing
-library(furrr)
-plan(multiprocess)
+future::plan(multiprocess)
 
 
 #Make a tibble with models with k = 0 through 20 to test for amount of clustering
 many_models <-
   tibble(K = c(seq(0, 70, by = 10))) %>%
   mutate(topic_model = future_map(
-    K, ~ stm(bernie_trans_sparse,
+    K, ~ stm::stm(bernie_trans_sparse,
              K = .,
              init.type = "Spectral",
              verbose = TRUE)
@@ -69,7 +54,7 @@ many_models <-
 
 
 #Makes a heldout
-heldout <- make.heldout(bernie_trans_sparse)
+heldout <- stm::make.heldout(bernie_trans_sparse)
 
 
 #I have no idea what this is doing
@@ -120,10 +105,13 @@ clustergraph
 
 
 
-# Julia's Video (Continued) -----------------------------------------------
-
 #running the topic model
 topic_model <- stm(bern_dfm,K = 4, init.type = "Spectral", verbose = TRUE) #Creating model with 5 topics
+
+
+
+# Topic Plots -------------------------------------------------------------
+
 
 
 #Making a tidy format for the beta measurment

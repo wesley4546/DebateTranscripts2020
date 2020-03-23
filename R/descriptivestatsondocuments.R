@@ -19,10 +19,6 @@ words_per_document <-
 summary(words_per_document)
 
 
-#createas lm with n by speaking time
-wcount_by_speakingtime <- lm(n ~ speaking_time_seconds, words_per_document)
-
-
 #Creats a dot plot of words by speaking time
 words_per_time_plot <-
   ggplot(words_per_document, aes(x = speaking_time_seconds, y = n)) +

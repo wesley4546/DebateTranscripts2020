@@ -8,20 +8,20 @@ library(lubridate)
 #Gets Bernie's Scripts
 source(here::here("R","berniescripts.R"))
 
-#Getting the length of each debate
-bern_documentlength <- 
-  bern_token%>% 
-  count(debate_name)
-
 #convert date(char) to date(date)
 bern_token<-
   bern_token%>% 
   mutate(date = mdy(date))
 
+
+
+# Word Cloud --------------------------------------------------------------
+
 #Creating a word list with words being mentioned > 15 times
 bern_word <- bern_token%>% 
   count(word) %>% 
   filter(n > 20) #set's it to only words that appear atleast 15
+
 
 #Creating a word cloud
 bern_cloud <- wordcloud(
@@ -29,6 +29,11 @@ bern_cloud <- wordcloud(
   freq = bern_word$n,
   color = brewer.pal(3,"Set2")
 )
+
+
+
+# Sentiment analysis ------------------------------------------------------
+
 
 
 #Creating the sentiment data
@@ -50,7 +55,8 @@ ggplot(bern_sent, aes(x=debate_name2, y = overall_seniment, fill = as.factor(deb
   )
 
 
-## Topic Modeling
+
+# Topic Modeling (LDA) ----------------------------------------------------
 library(topicmodels)
 
 #creating a df to work with
