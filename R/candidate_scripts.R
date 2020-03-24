@@ -1,5 +1,6 @@
 library(tidyverse)
 library(tidytext)
+library(lubridate)
 
 # These are the scripts in which will be sourced within all files within project.
 # 
@@ -82,6 +83,7 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
       ~word,        ~lexicon,
       "america",    "custom",
       "american",   "custom",
+      "americans",  "custom",
       "people",     "custom",
       "country",    "custom",
       "bring",      "custom",
@@ -91,7 +93,11 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
       "crosstalk",  "custom",
       "ain",        "custom",
       "ll",         "custom",
-      "didn",       "custom"
+      "didn",       "custom",
+      "president",  "custom",
+      "donald",     "custom",
+      "time",       "custom",
+      "tonight",    "custom",
     )
     
     #Adding my own stopwords to the list
@@ -119,6 +125,42 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
       filter(!grepl("[[:digit:]]", word))
   }
   
+  #Changes date(char) to date(date)
+  candidate_token<-
+    candidate_token %>% 
+    mutate(date = mdy(date))
+  
+  
+  # candidate_token <- 
+  #   candidate_token %>% 
+  #   filter(speaking_time_seconds > 10)
+  
+  
+  
   return(candidate_token)
   
 }
+
+
+
+# test <-
+#   tokenize_transcripts(
+#     get_candidate_transcripts("Bernie Sanders", doc_col = TRUE),
+#     rm_stop = TRUE,
+#     rm_num = TRUE
+#   )
+
+
+
+
+# candidate_name <- c("Bernie Sanders")
+# 
+# # Gets Candidate's Scripts ------------------------------------------------
+# 
+# source(here::here("R","candidate_scripts.R"))
+# 
+# candidate_transcripts <-
+#   get_candidate_transcripts(candidate_name, doc_col = TRUE)
+# 
+# candidate_token <-
+#   tokenize_transcripts(candidate_transcripts, rm_stop = TRUE, rm_num = TRUE)

@@ -3,7 +3,7 @@ library(tidyr)
 library(patchwork)
 
 candidate_name <- c("Bernie Sanders")
-
+cuttoffseconds <- 10
 
 # Gets Candidate's Scripts ------------------------------------------------
 
@@ -54,5 +54,9 @@ boxplot_amt_words <-
 tri_plot <-
   boxplot_amt_words + distribution_of_words + words_per_time_plot +
   plot_annotation(title = "Descriptive Statistics of Documents",
-                  subtitle = paste("Candidate:",candidate_name))
+                  subtitle = paste("Candidate:",candidate_name, "cutoff seconds >", cuttoffseconds))
+tri_plot
+summary(words_per_document)
+nrow(words_per_document)
 
+ggsave(here::here("output","graphs",paste("descriptive_",cuttoffseconds,"_cutoffseconds.png",sep = "")), tri_plot)

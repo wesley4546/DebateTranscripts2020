@@ -1,0 +1,1 @@
+install.packages(c("tidyverse","tidytext","lubridate","ggplot2","tidyr","patchwork","stm","furrr","wordcloud"))
