@@ -130,10 +130,10 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
     candidate_token %>% 
     mutate(date = mdy(date))
   
-  
-  # candidate_token <- 
-  #   candidate_token %>% 
-  #   filter(speaking_time_seconds > 10)
+  #Takes away documents with speaking time below 2
+  candidate_token <-
+    candidate_token %>%
+    filter(speaking_time_seconds > 2)
   
   
   
