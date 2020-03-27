@@ -1,6 +1,9 @@
 library(tidyverse)
 library(tidytext)
 library(lubridate)
+library(stringr)
+library(ggplot2)
+library(tidyr)
 
 # These are the scripts in which will be sourced within all files within project.
 # 
@@ -164,3 +167,15 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
 # 
 # candidate_token <-
 #   tokenize_transcripts(candidate_transcripts, rm_stop = TRUE, rm_num = TRUE)
+
+
+# Format candidate's name to a filename -----------------------------------
+
+format_filename <- function(candidatesname){
+  
+  #Change's name to lowercase, and no space
+  file_name <- paste(tolower(str_replace_all(string=candidatesname, pattern=" ", repl="")))
+  
+  return(file_name)
+  
+}

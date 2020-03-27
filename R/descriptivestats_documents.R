@@ -1,13 +1,13 @@
-library(ggplot2)
-library(tidyr)
 library(patchwork)
 
-candidate_name <- c("Pete Buttigieg")
+candidate_name <- c("Amy Klobuchar")
 
 
 # Gets Candidate's Scripts ------------------------------------------------
 
 source(here::here("R","candidate_scripts.R"))
+
+file_name <- format_filename(candidate_name)
 
 candidate_transcripts <-
   get_candidate_transcripts(candidate_name, doc_col = TRUE)
@@ -55,8 +55,9 @@ tri_plot <-
   boxplot_amt_words + distribution_of_words + words_per_time_plot +
   plot_annotation(title = "Descriptive Statistics of Documents",
                   subtitle = paste("Candidate:",candidate_name))
-tri_plot
-summary(words_per_document)
+
+#Save's image
+# ggsave(here::here("output","graphs","candidates",paste(file_name),"descriptive_stats",paste("descriptivestats",paste(file_name),".png", sep = "_")),
+#        tri_plot)
+
 nrow(words_per_document)
-
-

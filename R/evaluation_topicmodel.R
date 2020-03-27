@@ -1,18 +1,16 @@
-library(ggplot2)
-library(tidyr)
 library(stm)
 library(furrr)
 library(ggthemes)
-library(stringr)
+
 
 #Name of candidate for model evaluation
-candidate_name <- c("Andrew Yang")
+candidate_name <- c("Michael Bloomberg")
 
 #formats candidate's name for anyfile naming
 file_name <- paste(tolower(str_replace_all(string=candidate_name, pattern=" ", repl="")))
 
 #Which model is going to be evaluated (1 = macro view (2-100 clusters), 2 = zoomed (2-20 clusters))
-picture <- 2
+picture <- 1
 
 
 # Gets Candidate's Scripts ------------------------------------------------
@@ -43,7 +41,6 @@ candidate_sparse <- candidate_token %>%
 #Parellel computing
 future::plan(multiprocess)
 
-
 #Creates models by cluster
 
 if(picture == 1){
@@ -67,11 +64,6 @@ if(picture == 1){
   
 }
   
-
-
-
-
-
 #Makes a heldout
 heldout <- stm::make.heldout(candidate_sparse)
 
@@ -141,7 +133,6 @@ ggsave(
   here::here(
     "output",
     "graphs",
-    "evaluation_graphs",
     "candidates",
     paste(file_name),
     paste(picture,"evaluation",paste(file_name),"kclustersCUTOFF.png", sep = "_")

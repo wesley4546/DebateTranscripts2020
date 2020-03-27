@@ -1,10 +1,11 @@
-library(ggplot2)
-library(tidyr)
 library(stm)
 library(furrr)
 
-candidate_name <- c("Andrew Yang")
+candidate_name <- c("Bernie Sanders")
+number_of_clusters <- 7
 
+
+file_name <- paste(tolower(str_replace_all(string=candidate_name, pattern=" ", repl="")))
 # Gets Candidate's Scripts ------------------------------------------------
 
 #Sources scripts
@@ -31,7 +32,7 @@ candidate_sparse <- candidate_token %>%
   tidytext::cast_sparse(document, word, n)
 
 #running the topic model
-topic_model <- stm(candidate_dfm,K = 6, init.type = "Spectral", verbose = TRUE)
+topic_model <- stm(candidate_dfm,K = number_of_clusters, verbose = TRUE)
 
 # Topic Plots -------------------------------------------------------------
 
@@ -39,7 +40,8 @@ topic_model <- stm(candidate_dfm,K = 6, init.type = "Spectral", verbose = TRUE)
 td_beta <- tidy(topic_model)
 
 # visualize the topics
-td_beta %>%
+topic_graph <- 
+  td_beta %>%
   group_by(topic) %>%
   top_n(10) %>%
   ungroup %>%
@@ -49,16 +51,13 @@ td_beta %>%
   facet_wrap( ~ topic, scales = "free") + #by topic
   coord_flip() +
   labs(title = "Spectral Topic Model",
-       subtitle = paste("Candidate:",candidate_name),
+       subtitle = paste("Candidate:",candidate_name,"-","Number of topics:",number_of_clusters),
        x ='',
        y ='')
 
-#Measurement of the model using histograms
-td_gamma <- tidy(topic_model,
-                 matrix = "gamma",
-                 document_names = rownames(candidate_dfm))
+#Saves TD beta
+ggsave(here::here("output","graphs","candidates",paste(file_name),"topics_tdbeta",paste(number_of_clusters,"cluster",paste(file_name),"topics.png", sep = "_")),topic_graph)
 
-#Creates histogram plot
-ggplot(td_gamma, aes(gamma, fill = as.factor(topic))) +
-  geom_histogram(show.legend = FALSE) +
-  facet_wrap(~ topic, ncol = 5)
+#Creates command dialoge box to notify once model is done.
+system('CMD /C "ECHO The R process has finished running && PAUSE"', 
+       invisible=FALSE, wait=FALSE)
