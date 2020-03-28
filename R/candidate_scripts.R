@@ -136,7 +136,7 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
   #Takes away documents with speaking time below 2
   candidate_token <-
     candidate_token %>%
-    filter(speaking_time_seconds > 2)
+    filter(speaking_time_seconds > 10)
   
   
   

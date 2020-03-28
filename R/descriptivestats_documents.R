@@ -1,7 +1,7 @@
 library(patchwork)
 
-candidate_name <- c("Amy Klobuchar")
-
+candidate_name <- c("Bernie Sanders")
+cut_off_time <- 10
 
 # Gets Candidate's Scripts ------------------------------------------------
 
@@ -54,10 +54,10 @@ boxplot_amt_words <-
 tri_plot <-
   boxplot_amt_words + distribution_of_words + words_per_time_plot +
   plot_annotation(title = "Descriptive Statistics of Documents",
-                  subtitle = paste("Candidate:",candidate_name))
+                  subtitle = paste("Candidate:",candidate_name, "| Cut off time:", cut_off_time))
 
-#Save's image
-# ggsave(here::here("output","graphs","candidates",paste(file_name),"descriptive_stats",paste("descriptivestats",paste(file_name),".png", sep = "_")),
-#        tri_plot)
+# Save's image
+ggsave(here::here("output","graphs","candidates",paste(file_name),"descriptive_stats",paste(cut_off_time,"descriptivestats",paste(file_name),".png", sep = "_")),
+        plot = tri_plot, dpi = 1000, width = 8, height =6)
 
 nrow(words_per_document)
