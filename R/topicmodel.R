@@ -2,7 +2,7 @@ library(stm)
 library(furrr)
 
 candidate_name <- c("Bernie Sanders")
-number_of_clusters <- 7
+number_of_clusters <- 16
 
 
 file_name <- paste(tolower(str_replace_all(string=candidate_name, pattern=" ", repl="")))
@@ -33,6 +33,13 @@ candidate_sparse <- candidate_token %>%
 
 #running the topic model
 topic_model <- stm(candidate_dfm,K = number_of_clusters, verbose = TRUE)
+
+
+
+heldout <- make.heldout(candidate_sparse, N=(.1 * nrow(candidate_transcripts)))
+
+
+evaluation_heldout <- eval.heldout(topic_model, heldout$missing)
 
 # Topic Plots -------------------------------------------------------------
 

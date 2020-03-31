@@ -4,10 +4,7 @@ library(ggthemes)
 
 
 #Name of candidate for model evaluation
-candidate_name <- c("Michael Bloomberg")
-
-#formats candidate's name for anyfile naming
-file_name <- paste(tolower(str_replace_all(string=candidate_name, pattern=" ", repl="")))
+candidate_name <- c("Bernie Sanders")
 
 #Which model is going to be evaluated (1 = macro view (2-100 clusters), 2 = zoomed (2-20 clusters))
 picture <- 1
@@ -17,6 +14,9 @@ picture <- 1
 
 #Sources scripts
 source(here::here("R", "candidate_scripts.R"))
+
+#formats candidate's name for anyfile naming
+file_name <- paste(tolower(str_replace_all(string=candidate_name, pattern=" ", repl="")))
 
 #Retrieve's candidate's transcripts
 candidate_transcripts <-
@@ -65,7 +65,7 @@ if(picture == 1){
 }
   
 #Makes a heldout
-heldout <- stm::make.heldout(candidate_sparse)
+heldout <- make.heldout(candidate_sparse, N=(0.05 * nrow(candidate_transcripts)))
 
 #I have no idea what this is doing
 k_result <- many_models %>%
@@ -129,16 +129,17 @@ clustergraph
 
 # Saving Graph ------------------------------------------------------------
 
-ggsave(
-  here::here(
-    "output",
-    "graphs",
-    "candidates",
-    paste(file_name),
-    paste(picture,"evaluation",paste(file_name),"kclustersCUTOFF.png", sep = "_")
-  ),
-  clustergraph
-)
+# ggsave(
+#   here::here(
+#     "output",
+#     "graphs",
+#     "candidates",
+#     paste(file_name),
+#     "evaluationtopicmodel",
+#     paste(picture,"evaluation",paste(file_name),"kclustersCUTOFF.png", sep = "_")
+#   ),
+#   clustergraph
+# )
 
 #Creates command dialoge box to notify once model is done.
 system('CMD /C "ECHO The R process has finished running && PAUSE"', 
@@ -147,55 +148,55 @@ system('CMD /C "ECHO The R process has finished running && PAUSE"',
 # Selecting Topic Number --------------------------------------------------
 
 
-# 
-# topic_model <- k_result %>% 
-#   filter(K == 60) %>% 
-#   pull(topic_model) %>% 
-#   .[[1]]
-# 
-# 
-# 
-# # Graphing Topics ---------------------------------------------------------
-# 
-# #Making a tidy format for the beta measurment
-# td_beta <- tidy(topic_model)
-# td_gamma <- tidy(topic_model, matrix = "gamma",
-#                  document_names = rownames(candidate_sparse))
-# 
-# 
-# 
-# top_terms <- td_beta %>%
-#   arrange(beta) %>%
-#   group_by(topic) %>%
-#   top_n(7, beta) %>%
-#   arrange(-beta) %>%
-#   select(topic, term) %>%
-#   summarise(terms = list(term)) %>%
-#   mutate(terms = map(terms, paste, collapse = ", ")) %>% 
-#   unnest(cols = c(terms))
-# 
-# gamma_terms <- td_gamma %>%
-#   group_by(topic) %>%
-#   summarise(gamma = mean(gamma)) %>%
-#   arrange(desc(gamma)) %>%
-#   left_join(top_terms, by = "topic") %>%
-#   mutate(topic = paste0("Topic ", topic),
-#          topic = reorder(topic, gamma))
-# 
-# gamma_terms %>%
-#   top_n(20, gamma) %>%
-#   ggplot(aes(topic, gamma, label = terms, fill = topic)) +
-#   geom_col(show.legend = FALSE) +
-#   geom_text(hjust = 0, nudge_y = 0.0005, size = 3,
-#             family = "IBMPlexSans") +
-#   coord_flip() +
-#   scale_y_continuous(expand = c(0,0),
-#                      limits = c(0, 0.09),
-#                      labels = scales::percent_format()) +
-#   theme_tufte(base_family = "IBMPlexSans", ticks = FALSE) +
-#   theme(plot.title = element_text(size = 16,
-#                                   family="IBMPlexSans-Bold"),
-#         plot.subtitle = element_text(size = 13)) +
-#   labs(x = NULL, y = expression(gamma),
-#        title = "Top 20 topics by prevalence in the debates",
-#        subtitle = paste("Candidate:",candidate_name))
+
+topic_model <- k_result %>%
+  filter(K == 50) %>%
+  pull(topic_model) %>%
+  .[[1]]
+
+
+
+# Graphing Topics ---------------------------------------------------------
+
+#Making a tidy format for the beta measurment
+td_beta <- tidy(topic_model)
+td_gamma <- tidy(topic_model, matrix = "gamma",
+                 document_names = rownames(candidate_sparse))
+
+
+
+top_terms <- td_beta %>%
+  arrange(beta) %>%
+  group_by(topic) %>%
+  top_n(7, beta) %>%
+  arrange(-beta) %>%
+  select(topic, term) %>%
+  summarise(terms = list(term)) %>%
+  mutate(terms = map(terms, paste, collapse = ", ")) %>%
+  unnest(cols = c(terms))
+
+gamma_terms <- td_gamma %>%
+  group_by(topic) %>%
+  summarise(gamma = mean(gamma)) %>%
+  arrange(desc(gamma)) %>%
+  left_join(top_terms, by = "topic") %>%
+  mutate(topic = paste0("Topic ", topic),
+         topic = reorder(topic, gamma))
+
+gamma_terms %>%
+  top_n(20, gamma) %>%
+  ggplot(aes(topic, gamma, label = terms, fill = topic)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(hjust = 0, nudge_y = 0.0005, size = 3,
+            family = "IBMPlexSans") +
+  coord_flip() +
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0, 0.09),
+                     labels = scales::percent_format()) +
+  theme_tufte(base_family = "IBMPlexSans", ticks = FALSE) +
+  theme(plot.title = element_text(size = 16,
+                                  family="IBMPlexSans-Bold"),
+        plot.subtitle = element_text(size = 13)) +
+  labs(x = NULL, y = expression(gamma),
+       title = "Top 20 topics by prevalence in the debates",
+       subtitle = paste("Candidate:",candidate_name))
