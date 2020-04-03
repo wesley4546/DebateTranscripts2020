@@ -12,6 +12,7 @@ library(tidyr)
 # Norah O'Donnell or Beto O'Rourke. If you have any suggestions in how I can fix this, 
 # Please create an issue in GitHub or email me at: wesley.gardiner45456@gmail.com :)
 
+cut_off_time <- 10
 
 # get_Trancsripts function ------------------------------------------------
 
@@ -133,10 +134,10 @@ tokenize_transcripts <- function(candidate_transcripts, rm_stop = FALSE, rm_num 
     candidate_token %>% 
     mutate(date = mdy(date))
   
-  #Takes away documents with speaking time below 2
+  #Takes away documents with speaking time below the cut_off_time
   candidate_token <-
     candidate_token %>%
-    filter(speaking_time_seconds > 20)
+    filter(speaking_time_seconds > cut_off_time)
   
   
   

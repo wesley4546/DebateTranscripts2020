@@ -36,7 +36,7 @@ topic_model <- stm(candidate_dfm,K = number_of_clusters, verbose = TRUE)
 
 
 
-heldout <- make.heldout(candidate_sparse, N=(.1 * nrow(candidate_transcripts)))
+heldout <- make.heldout(candidate_sparse, N = floor(.1 * length(unique(candidate_token$speaking_time_seconds))), proportion = .30)
 
 
 evaluation_heldout <- eval.heldout(topic_model, heldout$missing)

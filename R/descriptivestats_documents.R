@@ -1,7 +1,7 @@
 library(patchwork)
 
-candidate_name <- c("Bernie Sanders")
-cut_off_time <- 10
+candidate_name <- c("Andrew Yang")
+
 
 # Gets Candidate's Scripts ------------------------------------------------
 
@@ -59,5 +59,5 @@ tri_plot <-
 # Save's image
 ggsave(here::here("output","graphs","candidates",paste(file_name),"descriptive_stats",paste(cut_off_time,"descriptivestats",paste(file_name),".png", sep = "_")),
         plot = tri_plot, dpi = 1000, width = 8, height =6)
-
+tri_plot
 nrow(words_per_document)
