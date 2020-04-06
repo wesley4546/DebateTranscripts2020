@@ -153,6 +153,7 @@ k_result %>%
 
 
 
+#Selects the desired number of clusters.
 topic_model <- k_result %>%
  filter(K == 5) %>%
  pull(topic_model) %>%
