@@ -519,14 +519,16 @@ clustergraph <-
     subtitle = paste("Cut off time:", cut_off_time)
   )
 clustergraph
+
+# Optimal number of models
+number_of_clusters <- 15
 ```
 
-As seen above, the held-out-likelihood and semantic coherence are optimal at 15 topics. [@Mimno2011OptimizingSemantic]
+As seen above, the held-out-likelihood and semantic coherence are optimal at `r number_of_clusters` topics. [@Mimno2011OptimizingSemantic]
 
-Extract the topic with 15 models
+Extract the topic with `r number_of_clusters` topics.
 
 ```{r}
-number_of_clusters <- 15
 
 topic_model <- k_result %>%
   filter(K == number_of_clusters) %>%
