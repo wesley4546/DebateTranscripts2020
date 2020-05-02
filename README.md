@@ -11,7 +11,7 @@ This repo is used for my analysis of the Democratic Debate Transcripts supplied 
  * Graphs from Analyses (output/graphs)
 	 * [Seperated by Candidates](https://github.com/wesley4546/DebateTranscripts2020/tree/master/output/graphs/candidates)
  * R (R)
-	 * The R Scripts used for analyses. You'll find different forms of R programming within different scripts. This is because I was         trying different forms of programming to find which style I like.
+	 * The R Scripts used for analyses. You'll find different forms of R programming within different scripts. This is because I was trying different forms of programming to find which style I like.
  * Data (data/raw)
 	 * The transcripts (.csv)
 	 
