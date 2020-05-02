@@ -5,6 +5,7 @@ This repo is used for my analysis of the Democratic Debate Transcripts supplied 
 ### Table of Contents
 
  * Final Project (finalproject)
+ 
  	* [HTML](finalproject/finalproject.html)
  	* Various forms of the project (Word & PDF)
 	* sessionInfo
