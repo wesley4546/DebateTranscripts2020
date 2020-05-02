@@ -5,8 +5,7 @@ This repo is used for my analysis of the Democratic Debate Transcripts supplied 
 ### Table of Contents
 
  * Final Project (finalproject)
- 	* [HTML](finalproject/finalproject.html)
- 	* Various forms of the project (Word & PDF)
+ 	* [HTML](finalproject/finalproject.html) & Various forms of the project (Word & PDF)
 	* [sessionInfo](https://raw.githubusercontent.com/wesley4546/DebateTranscripts2020/master/finalproject/sessionInfo.txt)
  * Graphs from Analyses (output/graphs)
 	 * [Seperated by Candidates](https://github.com/wesley4546/DebateTranscripts2020/tree/master/output/graphs/candidates)
