@@ -40,7 +40,7 @@ Full link: https://www.kaggle.com/brandenciranni/democratic-debate-transcripts-2
 
 
 ```{r}
-#Packages used to clean
+# Packages used to clean
 library(tidyverse)
 library(tidytext)
 library(lubridate)
@@ -54,7 +54,7 @@ Read the data into R.
 
 
 ```{r read_csv()ing the data}
-#Reads the data in from csv format
+# Reads the data in from csv format
 debate_data <-
   read.csv(
     here::here("data", "raw", "debate_transcripts_v3_2020-02-26.csv"),
@@ -62,7 +62,7 @@ debate_data <-
     encoding = "UTF-8"
   )
 
-#I perfer to use tibbles :)
+# I perfer to use tibbles :)
 debate_data <- tibble(debate_data)
 ```
 
@@ -72,14 +72,14 @@ I specify `stringAsFactors = FALSE` and `encoding = "UTF-8"` due to conflict bet
 A peek into the data:
 
 ```{r}
-#Structure of the data
+# Structure of the data
 str(debate_data)
 
-#Names of the columns
+# Names of the columns
 colnames(debate_data)
 
-#This takes a look at the dimensions of our data in a clear format
-paste("Our data has",nrow(debate_data),"rows and", ncol(debate_data),"columns")
+# This takes a look at the dimensions of our data in a clear format
+paste("Our data has", nrow(debate_data), "rows and", ncol(debate_data), "columns")
 ```
 
 ## Speaking Time
@@ -88,12 +88,12 @@ One of the questions asked was: Who talked the most?
 
 Since the analyses are of candidates that continued through-out the debates (last one being the South Carolina Debate on Feb. 25) a list of them must be provided.
 ```{r}
-#This will filter out only the last debate items
+# This will filter out only the last debate items
 list_of_speakers_last <-
-  debate_data %>% 
+  debate_data %>%
   filter(debate_name == "South Carolina Democratic Debate Transcript: February 25 Democratic Debate")
 
-#This gives the names of the speakers in the last debate
+# This gives the names of the speakers in the last debate
 unique(list_of_speakers_last$speaker)
 ```
 
@@ -103,34 +103,34 @@ The speakers can be seen above.
 Creating a list of candidates.
 
 ```{r}
-#This is a list of the candidates of the last debate
-list_of_candidates_last <- c("Bernie Sanders","Joe Biden","Elizabeth Warren","Michael Bloomberg","Pete Buttigieg","Tom Steyer","Amy Klobuchar")
+# This is a list of the candidates of the last debate
+list_of_candidates_last <- c("Bernie Sanders", "Joe Biden", "Elizabeth Warren", "Michael Bloomberg", "Pete Buttigieg", "Tom Steyer", "Amy Klobuchar")
 ```
 
 I saw some of the speaking times were 0, I don't think that made sense with the words found in those occurrences so I changed them to 1 second.
 
 ```{r}
-#There were some speaking times of 0 (which doesn't seem to make sense) so I replaced them with 1 second.
+# There were some speaking times of 0 (which doesn't seem to make sense) so I replaced them with 1 second.
 debate_data <-
-  debate_data %>% 
+  debate_data %>%
   mutate(speaking_time_seconds = ifelse(speaking_time_seconds == 0, 1, speaking_time_seconds))
 ```
 
 Now we can start making a graph of the data to visualize it.
 
 ```{r}
-#Here I am going to graph the speaking time in minutes for our candidates
-speaking_time_graph <- 
-  debate_data %>% 
-  tidyr::drop_na() %>% #Drops NA
+# Here I am going to graph the speaking time in minutes for our candidates
+speaking_time_graph <-
+  debate_data %>%
+  tidyr::drop_na() %>% # Drops NA
   group_by(speaker) %>% # I have to tell it to group by speaker because there are multiple rows of own speaker
-  filter(speaker %in% list_of_candidates_last) %>% 
-  summarise(total_speaking_time_minutes = sum(speaking_time_seconds)/60) %>%  #Creates our minutes column
-  mutate(speaker = fct_reorder(speaker, total_speaking_time_minutes)) %>% #reoders for clarity
+  filter(speaker %in% list_of_candidates_last) %>%
+  summarise(total_speaking_time_minutes = sum(speaking_time_seconds) / 60) %>% # Creates our minutes column
+  mutate(speaker = fct_reorder(speaker, total_speaking_time_minutes)) %>% # reoders for clarity
   ggplot(aes(speaker, total_speaking_time_minutes)) +
   geom_col()
 
-#Cleans it up a little bit and adds labels
+# Cleans it up a little bit and adds labels
 speaking_time_graph +
   labs(
     title = "Total Speaking Time in Minutes",
@@ -138,8 +138,7 @@ speaking_time_graph +
     x = "Speaker",
     y = "Speaking Time in Minutes"
   ) +
-  geom_text(aes(label=round(total_speaking_time_minutes)), position=position_dodge(width=0.9), vjust=-0.25)
-
+  geom_text(aes(label = round(total_speaking_time_minutes)), position = position_dodge(width = 0.9), vjust = -0.25)
 ```
 
 We can see here that Sanders had the most speaking time (157 minutes) and Bloomberg had the least (27 minutes) and that makes sense because Bloomberg didn't have start his campaign until later.
@@ -155,7 +154,7 @@ library(tidytext)
 From here on only one candidate will be shown; however, changing the name will result in different analyses.
 
 ```{r}
-#I'm choosing Bernie Sanders because he has the most data.
+# I'm choosing Bernie Sanders because he has the most data.
 candidate_name <- "Bernie Sanders"
 ```
 
@@ -163,9 +162,9 @@ Filter the transcripts for `candidate_name`.
 
 ```{r}
 candidate_transcripts <-
-  debate_data %>% 
-  filter(speaker == candidate_name) %>% 
-  mutate(document = (1:nrow(.))) #Add's a document column
+  debate_data %>%
+  filter(speaker == candidate_name) %>%
+  mutate(document = (1:nrow(.))) # Add's a document column
 ```
 
 Splitting the text into documents is an important step in textual analysis. Each time the candidates speak are chosen as the document type.
@@ -178,28 +177,28 @@ The tidy text packages has commonly used stop words; however, ;I've added my own
 
 ```{r}
 custom_stop_words <- tibble::tribble(
-      ~word,        ~lexicon,
-      "america",    "custom",
-      "american",   "custom",
-      "americans",  "custom",
-      "people",     "custom",
-      "country",    "custom",
-      "bring",      "custom",
-      "'",          "custom", #The reason I added this one is because of the UTF-8 coding
-      "don",        "custom",
-      "ve",         "custom",
-      "crosstalk",  "custom",
-      "ain",        "custom",
-      "ll",         "custom",
-      "didn",       "custom",
-      "president",  "custom",
-      "donald",     "custom",
-      "time",       "custom",
-      "tonight",    "custom",
-    )
+  ~word,        ~lexicon,
+  "america",    "custom",
+  "american",   "custom",
+  "americans",  "custom",
+  "people",     "custom",
+  "country",    "custom",
+  "bring",      "custom",
+  "'",          "custom", # The reason I added this one is because of the UTF-8 coding
+  "don",        "custom",
+  "ve",         "custom",
+  "crosstalk",  "custom",
+  "ain",        "custom",
+  "ll",         "custom",
+  "didn",       "custom",
+  "president",  "custom",
+  "donald",     "custom",
+  "time",       "custom",
+  "tonight",    "custom",
+)
 
-#Adds my custom stopwords with the already made stopwords
-stop_words2 <- stop_words %>% #stop_words comes from the tidytext package
+# Adds my custom stopwords with the already made stopwords
+stop_words2 <- stop_words %>% # stop_words comes from the tidytext package
   bind_rows(custom_stop_words)
 ```
 
@@ -210,20 +209,20 @@ I've added words like "America", "Tonight","President" and others since we are u
 Now we tokenize the data.
 
 ```{r}
-#Unnested tokens data
-candidate_token <- 
+# Unnested tokens data
+candidate_token <-
   candidate_transcripts %>%
   unnest_tokens(word, speech, token = "words") %>%
-  anti_join(stop_words2) %>%  #Stop words
+  anti_join(stop_words2) %>% # Stop words
   arrange(word)
 ```
 
 Remove any digits (dollar amounts, statistics, etc).
 
 ```{r}
-candidate_token <- 
+candidate_token <-
   candidate_token %>%
-  filter(!grepl("[[:digit:]]", word)) #removes any digits
+  filter(!grepl("[[:digit:]]", word)) # removes any digits
 ```
 
 
@@ -234,7 +233,7 @@ One nice visualization is a word cloud when it comes to textual data. They provi
 Imposing thresholds allow for focus in word clouds. As an arbitrary measure, words that show up more than 7 times are shown on the word cloud.I chose 7 because I thought it brought out the key features of the data.
 
 ```{r}
-#Creating a word list with words being mentioned > 7 times
+# Creating a word list with words being mentioned > 7 times
 candidate_word <- candidate_token %>%
   count(word) %>%
   filter(n > 7)
@@ -247,16 +246,18 @@ library(wordcloud)
 ```
 
 ```{r}
-#Color-blind friendly palette
-cbPalette <- c("#999999","#D55E00", "#56B4E9")
+# Color-blind friendly palette
+cbPalette <- c("#999999", "#D55E00", "#56B4E9")
 
-candidate_cloud <- wordcloud(words = candidate_word$word,
-                        freq = candidate_word$n,
-                        color = cbPalette,
-                        random.order=FALSE,
-                        rot.per=0,
-                        scale=c(2.5,1), 
-                        max.words = 70) #Only shows 70 words
+candidate_cloud <- wordcloud(
+  words = candidate_word$word,
+  freq = candidate_word$n,
+  color = cbPalette,
+  random.order = FALSE,
+  rot.per = 0,
+  scale = c(2.5, 1),
+  max.words = 70
+) # Only shows 70 words
 ```
 
 ## Descriptive Statistics
@@ -267,102 +268,120 @@ Before conducting topic modeling, its important to look at descriptive statistic
  * What is the distribution of tokens per document?
  
 ```{r fig.width=15}
-#gets the count of words per document
+# gets the count of words per document
 words_per_document <-
   candidate_token %>%
   count(document, speaking_time_seconds)
 
-#Creates a dot plot of words by speaking time
+# Creates a dot plot of words by speaking time
 words_per_time_plot <-
   ggplot(words_per_document, aes(x = speaking_time_seconds, y = n)) +
   geom_point() +
   geom_smooth() +
-  labs(x = "Speaking Time in Seconds",
-       y = "Words",
-       title = "Words per Seconds of Speaking Time")
+  labs(
+    x = "Speaking Time in Seconds",
+    y = "Words",
+    title = "Words per Seconds of Speaking Time"
+  )
 
-#Creates a distribution plot of the number of words per document
+# Creates a distribution plot of the number of words per document
 distribution_of_words <- ggplot(words_per_document, aes(x = n)) +
-  geom_histogram(aes(y = ..density..),      # Histogram with density instead of count on y-axis
-                 binwidth = 1) +
+  geom_histogram(aes(y = ..density..), # Histogram with density instead of count on y-axis
+    binwidth = 1
+  ) +
   geom_density(alpha = .2, fill = "#FF6666") +
-  labs(x = "Number of Words",
-       y = "Density",
-       title = "Number of words per Document")
+  labs(
+    x = "Number of Words",
+    y = "Density",
+    title = "Number of words per Document"
+  )
 
 # Creates a boxplot with the documents and words
 boxplot_amt_words <-
   ggplot(words_per_document, aes(x = document, y = n)) +
   geom_boxplot() +
   geom_jitter(alpha = .5) +
-  labs(x = "Documents",
-       y = "# of Words",
-       title = "Amount of words per document")
+  labs(
+    x = "Documents",
+    y = "# of Words",
+    title = "Amount of words per document"
+  )
 
-#Loads patchwork
+# Loads patchwork
 library(patchwork)
 
-#Creates a plot with all three graphs
+# Creates a plot with all three graphs
 tri_plot <-
   boxplot_amt_words + distribution_of_words + words_per_time_plot +
-  plot_annotation(title = "Descriptive Statistics of Documents",
-                  subtitle = paste("Candidate:",candidate_name))
+  plot_annotation(
+    title = "Descriptive Statistics of Documents",
+    subtitle = paste("Candidate:", candidate_name)
+  )
 tri_plot
 ```
 
-Looking at the first plot, a large amount of document have a higher density of smaller words. This can be problematic because of the data-hungry nature of topic modeling. It disrupts not only the creation of the model but also the diagnostics of determining the correct number of topics. This is why imposing a threshold of a `speaking_time_seconds` of more than 2 can be beneficial. I chose more than 2 seconds because after looking at the actual words said it wasn't until around 3 seconds until I believe we started to see meaningful text/speech.
+Looking at the first plot, a large amount of document have a higher density of smaller words. This can be problematic because of the data-hungry nature of topic modeling. It disrupts not only the creation of the model but also the diagnostics of determining the correct number of topics. This is why imposing a threshold of a `speaking_time_seconds` of more than 2 can be beneficial. I chose more than 2 seconds because after looking at the actual words it wasn't until the 3 seconds mark I think we started seeing meaningful text/speech.
 
 ```{r}
 cut_off_time <- 2
 
 candidate_token <-
-  candidate_token %>% 
+  candidate_token %>%
   filter(speaking_time_seconds > cut_off_time)
 ```
 
 ```{r, echo = FALSE, fig.width=15}
-#Remakes the graphs we have previous
+# Remakes the graphs we have previous
 
-#gets the count of words per document
+# gets the count of words per document
 words_per_document <-
   candidate_token %>%
   count(document, speaking_time_seconds)
 
-#Creates a dot plot of words by speaking time
+# Creates a dot plot of words by speaking time
 words_per_time_plot <-
   ggplot(words_per_document, aes(x = speaking_time_seconds, y = n)) +
   geom_point() +
   geom_smooth() +
-  labs(x = "Speaking Time in Seconds",
-       y = "Words",
-       title = "Words per Seconds of Speaking Time")
+  labs(
+    x = "Speaking Time in Seconds",
+    y = "Words",
+    title = "Words per Seconds of Speaking Time"
+  )
 
-#Creates a distribution plot of the number of words per document
+# Creates a distribution plot of the number of words per document
 distribution_of_words <- ggplot(words_per_document, aes(x = n)) +
-  geom_histogram(aes(y = ..density..),      # Histogram with density instead of count on y-axis
-                 binwidth = 1) +
+  geom_histogram(aes(y = ..density..), # Histogram with density instead of count on y-axis
+    binwidth = 1
+  ) +
   geom_density(alpha = .2, fill = "#FF6666") +
-  labs(x = "Number of Words",
-       y = "Density",
-       title = "Number of words per Document")
+  labs(
+    x = "Number of Words",
+    y = "Density",
+    title = "Number of words per Document"
+  )
 
 # Creates a boxplot with the documents and words
 boxplot_amt_words <-
   ggplot(words_per_document, aes(x = document, y = n)) +
   geom_boxplot() +
   geom_jitter(alpha = .5) +
-  labs(x = "Documents",
-       y = "# of Words",
-       title = "Amount of words per document")
+  labs(
+    x = "Documents",
+    y = "# of Words",
+    title = "Amount of words per document"
+  )
 
-#Loads patchwork
+# Loads patchwork
 library(patchwork)
 
-#Creates a plot with all three graphs
+# Creates a plot with all three graphs
 tri_plot <-
   boxplot_amt_words + distribution_of_words + words_per_time_plot +
-  plot_annotation(title = "Descriptive Statistics of Documents",
-                  subtitle = paste("Candidate:",candidate_name, "with a cut off of",cut_off_time,"seconds"))
+  plot_annotation(
+    title = "Descriptive Statistics of Documents",
+    subtitle = paste("Candidate:", candidate_name, "with a cut off of", cut_off_time, "seconds")
+  )
 tri_plot
 ```
 
@@ -393,16 +412,16 @@ First it is necessary to create something called a "Document-Frequency Matrix."[
 
 
 ```{r}
-#Creating dfm
-candidate_dfm <- candidate_token %>% 
-  count(document,word,sort = TRUE) %>% 
-  tidytext::cast_dfm(document,word,n)
+# Creating dfm
+candidate_dfm <- candidate_token %>%
+  count(document, word, sort = TRUE) %>%
+  tidytext::cast_dfm(document, word, n)
 ```
 
 A sparse matrix is also necessary [@TrainingEvaluating]
 
 ```{r}
-#Creates a cast_spares
+# Creates a cast_spares
 candidate_sparse <- candidate_token %>%
   count(document, word) %>%
   tidytext::cast_sparse(document, word, n)
@@ -412,7 +431,7 @@ This way of evaluating an optimal amount of topics is computationally heavy. Tha
 
 ```{r}
 library(furrr)
-library(ggthemes) #For some themes for graphs
+library(ggthemes) # For some themes for graphs
 ```
 
 This tells the computer to plan for a multiprocess form of the package
@@ -427,9 +446,10 @@ This makes a data frame that will have all of our models (2-20). I chose the `in
 set.seed(278)
 
 many_models <-
-  tibble(K = c(2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)) %>%
+  tibble(K = c(2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)) %>%
   mutate(topic_model = future_map(K, ~ stm(
-    candidate_sparse, K = .,
+    candidate_sparse,
+    K = .,
     verbose = FALSE,
     init.type = "Spectral"
   )))
@@ -438,37 +458,39 @@ many_models <-
 Here, a selection is made of what documents to hold out from the model when evaluating it [@TrainingEvaluating]. This is a similar process used for other numerical machine learning. We take a portion of the documents out and compare the model's output to the held out and see how likely it fits. 
 
 ```{r}
-#Makes a heldout
+# Makes a heldout
 heldout <- make.heldout(candidate_sparse)
-#heldout <- make.heldout(candidate_sparse, N = (.05*nrow(candidate_transcripts)), proportion = .25)
+# heldout <- make.heldout(candidate_sparse, N = (.05*nrow(candidate_transcripts)), proportion = .25)
 ```
 
 Now create the data frame in which will output the metrics.
 
 ```{r}
-#Creates a df of our metrics *from Julia Silge's Blog*
+# Creates a df of our metrics *from Julia Silge's Blog*
 k_result <- many_models %>%
   mutate(
     exclusivity = map(topic_model, exclusivity),
     semantic_coherence = map(topic_model, semanticCoherence, candidate_sparse),
     eval_heldout = map(topic_model, eval.heldout, heldout$missing),
     residual = map(topic_model, checkResiduals, candidate_sparse),
-    bound =  map_dbl(topic_model, function(x)
-      max(x$convergence$bound)),
-    lfact = map_dbl(topic_model, function(x)
-      lfactorial(x$settings$dim$K)),
+    bound = map_dbl(topic_model, function(x) {
+      max(x$convergence$bound)
+    }),
+    lfact = map_dbl(topic_model, function(x) {
+      lfactorial(x$settings$dim$K)
+    }),
     lbound = bound + lfact,
-    iterations = map_dbl(topic_model, function(x)
-      length(x$convergence$bound))
+    iterations = map_dbl(topic_model, function(x) {
+      length(x$convergence$bound)
+    })
   )
-
 ```
 
 Now visualize the output.
 
 ```{r}
 
-#Cleans the data for the graph
+# Cleans the data for the graph
 clustergraph_data <- k_result %>%
   transmute(
     K,
@@ -477,22 +499,25 @@ clustergraph_data <- k_result %>%
     `Semantic coherence` = map_dbl(semantic_coherence, mean),
     `Held-out likelihood` = map_dbl(eval_heldout, "expected.heldout")
   ) %>%
-  gather(Metric, Value,-K)
+  gather(Metric, Value, -K)
 
-#Graphs the metrics.
-clustergraph <- 
-  clustergraph_data %>% 
+# Graphs the metrics.
+clustergraph <-
+  clustergraph_data %>%
   ggplot(aes(K, Value, color = Metric)) +
-  geom_line(size = 1.5,
-            alpha = 0.7,
-            show.legend = FALSE) +
+  geom_line(
+    size = 1.5,
+    alpha = 0.7,
+    show.legend = FALSE
+  ) +
   geom_point(alpha = 1, color = "Black") +
-  facet_wrap( ~ Metric, scales = "free_y") +
+  facet_wrap(~Metric, scales = "free_y") +
   labs(
     x = "K (number of topics)",
     y = NULL,
-    title = paste("Model diagnostics by number of topics for",candidate_name),
-    subtitle = paste("Cut off time:",cut_off_time))
+    title = paste("Model diagnostics by number of topics for", candidate_name),
+    subtitle = paste("Cut off time:", cut_off_time)
+  )
 clustergraph
 ```
 
@@ -501,9 +526,9 @@ As seen above, the held-out-likelihood and semantic coherence are optimal at 15 
 Extract the topic with 15 models
 
 ```{r}
-number_of_clusters = 15
+number_of_clusters <- 15
 
- topic_model <- k_result %>%
+topic_model <- k_result %>%
   filter(K == number_of_clusters) %>%
   pull(topic_model) %>%
   .[[1]]
@@ -512,24 +537,26 @@ number_of_clusters = 15
 The beta refers to topic-word density and will answer the question: What topics were most common?. [@LDAAlpha]
 
 ```{r fig.width = 10, fig.height = 10}
-#tidy format for the beta measurment
+# tidy format for the beta measurment
 td_beta <- tidy(topic_model)
 
 # visualize the topics
-topic_graph <- 
+topic_graph <-
   td_beta %>%
   group_by(topic) %>%
   top_n(10) %>%
-  ungroup %>%
-  mutate(term = reorder(term, beta)) %>% #ordering it by their beta rank
-  ggplot(aes(term, beta, fill = topic)) + #plotting it
+  ungroup() %>%
+  mutate(term = reorder(term, beta)) %>% # ordering it by their beta rank
+  ggplot(aes(term, beta, fill = topic)) + # plotting it
   geom_col(show.legend = FALSE) +
-  facet_wrap( ~ topic, scales = "free") + #by topic
+  facet_wrap(~topic, scales = "free") + # by topic
   coord_flip() +
-  labs(title = "Spectral Topic Model",
-       subtitle = paste("Candidate:",candidate_name,"-","Number of topics:",number_of_clusters),
-       x ='',
-       y ='') 
+  labs(
+    title = "Spectral Topic Model",
+    subtitle = paste("Candidate:", candidate_name, "-", "Number of topics:", number_of_clusters),
+    x = "",
+    y = ""
+  )
 
 topic_graph
 ```
@@ -543,25 +570,25 @@ Looking at the different topics per candidate its interesting to see that one co
 Elizabeth Warren:
 
 ```{r out.width="75%",out.height="75%"}
-knitr::include_graphics(here::here("finalproject","images","10_cluster_elizabethwarren_topics.png"))
+knitr::include_graphics(here::here("finalproject", "images", "10_cluster_elizabethwarren_topics.png"))
 ```
 
 Joe Biden:
 
 ```{r out.width="75%",out.height="75%"}
-knitr::include_graphics(here::here("finalproject","images","10_cluster_joebiden_topics.png"))
+knitr::include_graphics(here::here("finalproject", "images", "10_cluster_joebiden_topics.png"))
 ```
 
 Amy Klobuchar:
 
 ```{r out.width="75%",out.height="75%"}
-knitr::include_graphics(here::here("finalproject","images","9_cluster_amyklobuchar_topics.png"))
+knitr::include_graphics(here::here("finalproject", "images", "9_cluster_amyklobuchar_topics.png"))
 ```
 
 Tom Steyer:
 
 ```{r out.width="75%",out.height="75%"}
-knitr::include_graphics(here::here("finalproject","images","15_cluster_tomsteyer_topics.png"))
+knitr::include_graphics(here::here("finalproject", "images", "15_cluster_tomsteyer_topics.png"))
 ```
 
 
@@ -570,12 +597,8 @@ knitr::include_graphics(here::here("finalproject","images","15_cluster_tomsteyer
 There was trouble with Michael Bloomberg's and Pete Buttigeig's topic models. Unfortunately, after looking for solutions on various help sites and GitHub, there was not a solution found. Topic modeling works best when theres a lot of data. Some candidates had more data than others making topic models easy in some cases and hard in others. For Bloomberg, it may have to do to the shortage of data; however, that doesn't explain Buttigeig's error. Below is the error that was received.
 
 ```{r out.width="75%",out.height="75%"}
-knitr::include_graphics(here::here("finalproject","images","error_console_image.png"))
+knitr::include_graphics(here::here("finalproject", "images", "error_console_image.png"))
 ```
 
 
 ## References
-
-
-
-
