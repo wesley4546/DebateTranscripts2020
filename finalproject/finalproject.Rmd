@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Political debates are a big part of the presidential races in the United States. They allow candidates to talk about important issues together as well as share important ideas; this allows for some neat and relevant textual analysis.
 
-While I was looking at datasets for this final project I stumbled upon an interesting data set on Kaggle that were the 2020 Democratic Debate transcripts. After recently learning about topic modeling I decided to choose that data set and apply my new topic modeling skills to answer some questions I had:
+While I was looking at data sets for this final project I stumbled upon an interesting data set on Kaggle that were the 2020 Democratic Debate transcripts. After recently learning about topic modeling I decided to choose that data set and apply my new topic modeling skills to answer some questions I had:
 
  * What topics were most common among the candidates?
  * Who talked the most?
@@ -66,7 +66,7 @@ debate_data <-
 debate_data <- tibble(debate_data)
 ```
 
-Specifying `stringAsFactors = FALSE` and `encoding = "UTF-8"` due to conflict between the characters encoding from the original data set.
+I specify `stringAsFactors = FALSE` and `encoding = "UTF-8"` due to conflict between the characters encoding from the original data set.
 
 
 A peek into the data:
@@ -107,7 +107,7 @@ Creating a list of candidates.
 list_of_candidates_last <- c("Bernie Sanders","Joe Biden","Elizabeth Warren","Michael Bloomberg","Pete Buttigieg","Tom Steyer","Amy Klobuchar")
 ```
 
-Some of the speaking times were 0, changed them to 1 second
+I saw some of the speaking times were 0, I don't think that made sense with the words found in those occurrences so I changed them to 1 second.
 
 ```{r}
 #There were some speaking times of 0 (which doesn't seem to make sense) so I replaced them with 1 second.
@@ -116,7 +116,7 @@ debate_data <-
   mutate(speaking_time_seconds = ifelse(speaking_time_seconds == 0, 1, speaking_time_seconds))
 ```
 
-Now one can start making a graph of the data to visualize it.
+Now we can start making a graph of the data to visualize it.
 
 ```{r}
 #Here I am going to graph the speaking time in minutes for our candidates
@@ -172,9 +172,9 @@ Splitting the text into documents is an important step in textual analysis. Each
 
 ### Stop Words
 
-Stopwords must be removed from the text (words that carry little information like: a, we, I, me). [@UniversityofLiechtenstein2016TextMining, p. 10]
+Stop words must be removed from the text (words that carry little information like: a, we, I, me). [@UniversityofLiechtenstein2016TextMining, p. 10]
 
-The tidy text packages has commonly used stop words; however, some custom stopwords must be implemented.
+The tidy text packages has commonly used stop words; however, ;I've added my own.
 
 ```{r}
 custom_stop_words <- tibble::tribble(
@@ -203,7 +203,11 @@ stop_words2 <- stop_words %>% #stop_words comes from the tidytext package
   bind_rows(custom_stop_words)
 ```
 
-Now tokenize the data.
+I've added words like "America", "Tonight","President" and others since we are using debate data about the president/presidential race in America it doesn't really convey information. I've added "Donald" because I believe they're talking about Donald Trump but I have no way of knowing so I assume that the candidates will use "Trump" as well.
+
+
+
+Now we tokenize the data.
 
 ```{r}
 #Unnested tokens data
@@ -227,7 +231,7 @@ candidate_token <-
 
 One nice visualization is a word cloud when it comes to textual data. They provide a nice intuitive way of looking at words that show up a lot.
 
-Imposing thresholds allow for focus in wordclouds. As an arbitrary measure, words that show up more than 7 times are shown on the word cloud.
+Imposing thresholds allow for focus in word clouds. As an arbitrary measure, words that show up more than 7 times are shown on the word cloud.I chose 7 because I thought it brought out the key features of the data.
 
 ```{r}
 #Creating a word list with words being mentioned > 7 times
@@ -236,7 +240,7 @@ candidate_word <- candidate_token %>%
   filter(n > 7)
 ```
 
-The `wordcloud` package will be used for producing wordclouds.
+The `wordcloud` package will be used for producing word clouds.
 
 ```{r}
 library(wordcloud)
@@ -306,7 +310,7 @@ tri_plot <-
 tri_plot
 ```
 
-Looking at the first plot, a large amount of document have a higher density of smaller words. This can be problematic because of the data-hungry nature of topic modeling. It disrupt not only the creation of the model but also the diagnostics of determining the correct number of topics. This is why imposing a threshhold of a `speaking_time_seconds` of more than 2 can be beneficial.s
+Looking at the first plot, a large amount of document have a higher density of smaller words. This can be problematic because of the data-hungry nature of topic modeling. It disrupts not only the creation of the model but also the diagnostics of determining the correct number of topics. This is why imposing a threshold of a `speaking_time_seconds` of more than 2 can be beneficial. I chose more than 2 seconds because after looking at the actual words said it wasn't until around 3 seconds until I believe we started to see meaningful text/speech.
 
 ```{r}
 cut_off_time <- 2
@@ -367,7 +371,7 @@ Displayed above is the change in distribution when enacting the cut off time.
 
 ## Topic Modeling
 
-Topic modeling is a unsuperived machine learning technique. An inital number of topics must be given to the algorithm. The fun part is trying to figure out what number of topics are in the data. Showcased are four diagnostics used to determine the optimal number of topics: "held-out likelihood","semantic coherence","residuals", and "lower-bound" metrics.[@TrainingEvaluating; @Wallach2009EvaluationMethods]
+Topic modeling is a unsupervised machine learning technique. An initial number of topics must be given to the algorithm. The fun part is trying to figure out what number of topics are in the data. Showcased are four diagnostics used to determine the optimal number of topics: "held-out likelihood","semantic coherence","residuals", and "lower-bound" metrics.[@TrainingEvaluating; @Wallach2009EvaluationMethods]
 
 
 
@@ -404,7 +408,7 @@ candidate_sparse <- candidate_token %>%
   tidytext::cast_sparse(document, word, n)
 ```
 
-This way of evaluating an optimal amount of topics is comupationally heavy. That's why the  `furrr` package for parallel computing will come in handy. 
+This way of evaluating an optimal amount of topics is computationally heavy. That's why the `furrr` package for parallel computing will come in handy. 
 
 ```{r}
 library(furrr)
@@ -417,7 +421,7 @@ This tells the computer to plan for a multiprocess form of the package
 future::plan(multiprocess)
 ```
 
-This makes a dataframe that will have all of our models (2-20). Chosing the `init.type = "Spectral"` because that is what is suggested from the stm authors. [@Roberts2014StmPackage, p. 10]
+This makes a data frame that will have all of our models (2-20). I chose the `init.type = "Spectral"` because that is what is suggested from the stm authors. [@Roberts2014StmPackage, p. 10]
 
 ```{r}
 set.seed(278)
@@ -431,7 +435,7 @@ many_models <-
   )))
 ```
 
-Here a selection is made of what documents to hold out from the model when evaluating it. [@TrainingEvaluating]
+Here, a selection is made of what documents to hold out from the model when evaluating it [@TrainingEvaluating]. This is a similar process used for other numerical machine learning. We take a portion of the documents out and compare the model's output to the held out and see how likely it fits. 
 
 ```{r}
 #Makes a heldout
@@ -532,7 +536,7 @@ topic_graph
 
 ## Analysis
 
-Looking at the different topics per candidate its interesting to see that one common topic was summed up as "Defeating Trump" across candidates. It also was cool to see how the topics found for each candidate were comprehensive and show words associated around political issues (environment, gun laws, etc). With this type of analysis it can be seen that debates are filled with key words assocated with political issues;also showing a glimpse of how each candidate expresses each issue.
+Looking at the different topics per candidate its interesting to see that one common topic was summed up as "Defeating Trump" across candidates. It also was cool to see how the topics found for each candidate were comprehensive and show words associated around political issues (environment, gun laws, etc). With this type of analysis it can be seen that debates are filled with key words associated with political issues;also showing a glimpse of how each candidate expresses each issue.
 
 ## Other Candidates
 
@@ -563,7 +567,7 @@ knitr::include_graphics(here::here("finalproject","images","15_cluster_tomsteyer
 
 ## Notes
 
-There was trouble with Michael Bloomberg's and Pete Buttigeig's topic models. Unfortunately, after looking for solutions on various help sites and GitHub, there was not a solution found. Topic modeling works best when theres a lot of data. Some candidates had more data than others making topic models easy in some cases and hard in others. For Bloomberg, it may have to do to the shortage of data; however, that doesn't explain Buttigeig's error. Below is that console error that was receieved.
+There was trouble with Michael Bloomberg's and Pete Buttigeig's topic models. Unfortunately, after looking for solutions on various help sites and GitHub, there was not a solution found. Topic modeling works best when theres a lot of data. Some candidates had more data than others making topic models easy in some cases and hard in others. For Bloomberg, it may have to do to the shortage of data; however, that doesn't explain Buttigeig's error. Below is the error that was received.
 
 ```{r out.width="75%",out.height="75%"}
 knitr::include_graphics(here::here("finalproject","images","error_console_image.png"))
