@@ -1,6 +1,6 @@
 # [DebateTranscripts2020](https://wesley4546.github.io/DebateTranscripts2020/)
 
-This repo is used for my analysis of the Democratic Debate Transcripts supplied by Kaggle.com
+This repo is used for my analysis of the Democratic Debate Transcripts supplied by [Kaggle.com](kaggle.com)
 
 ### Table of Contents
 
